@@ -1,0 +1,162 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+body {
+    background-color: #f5f5f7;
+    color: #1d1d1f;
+    padding: 20px;
+}
+
+.app-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: white;
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+header h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+    color: #1d1d1f;
+}
+
+.gesture-area {
+    width: 100%;
+    height: 300px;
+    background-color: #fbfbfd;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    border: 2px dashed #d2d2d7;
+    margin-bottom: 20px;
+    touch-action: none;
+}
+
+.gesture-feedback {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+    background-color: rgba(0, 122, 255, 0.1);
+    border-radius: 10px;
+}
+
+.touch-point {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(0, 122, 255, 0.5);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s, width 0.2s, height 0.2s;
+}
+
+#touchCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.instructions {
+    margin-bottom: 20px;
+}
+
+.instructions h2 {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.gesture-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    list-style: none;
+}
+
+.gesture-list li {
+    padding: 12px;
+    background-color: #f5f5f7;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.gesture-list li:hover {
+    background-color: #e5e5ea;
+}
+
+.gesture-output {
+    padding: 15px;
+    background-color: #f5f5f7;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    min-height: 60px;
+}
+
+#clearBtn {
+    width: 100%;
+    padding: 12px;
+    background-color: #007aff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#clearBtn:hover {
+    background-color: #0062cc;
+}
+
+/* Feedback classes */
+.feedback-active {
+    opacity: 1 !important;
+}
+
+.tap-feedback {
+    background-color: rgba(52, 199, 89, 0.2);
+}
+
+.doubletap-feedback {
+    background-color: rgba(255, 149, 0, 0.2);
+}
+
+.press-feedback {
+    background-color: rgba(255, 59, 48, 0.2);
+}
+
+.pan-feedback {
+    background-color: rgba(88, 86, 214, 0.2);
+}
+
+.pinch-feedback {
+    background-color: rgba(175, 82, 222, 0.2);
+}
+
+.rotate-feedback {
+    background-color: rgba(255, 45, 85, 0.2);
+}
