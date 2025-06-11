@@ -139,12 +139,18 @@ document.addEventListener('DOMContentLoaded', function () {
         startFadingTraces();
     }
 
-    function getRelativePos(e) {
-        const bounds = gestureArea.getBoundingClientRect();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        return { x: clientX - bounds.left, y: clientY - bounds.top };
-    }
+   function getRelativePos(e) {
+    const gestureAreaRect = gestureArea.getBoundingClientRect();
+    const scrollX = window.pageXOffset;
+    const scrollY = window.pageYOffset;
+    const areaLeft = gestureAreaRect.left + scrollX;
+    const areaTop = gestureAreaRect.top + scrollY;
+
+    const x = (e.touches ? e.touches[0].pageX : e.pageX) - areaLeft;
+    const y = (e.touches ? e.touches[0].pageY : e.pageY) - areaTop;
+
+    return { x, y };
+}
 
     function resetFade() {
         traceOpacity = 1;
