@@ -6,133 +6,130 @@ document.addEventListener('DOMContentLoaded', function() {
     const clearBtn = document.getElementById('clearBtn');
     const gestureListItems = document.querySelectorAll('.gesture-list li');
     
-    // Set up canvas for touch tracing
+    // Set up canvas
     const canvas = document.getElementById('touchCanvas');
     const ctx = canvas.getContext('2d');
     canvas.width = gestureArea.offsetWidth;
     canvas.height = gestureArea.offsetHeight;
     
-    // Variables for fading traces
+    // Tracing variables
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
     let traceOpacity = 1;
     let fadeInterval;
-    const fadeDuration = 3000; // 3 seconds to fully fade
+    const fadeDuration = 3000;
     let drawingHistory = [];
     
-    // Adjust canvas on resize
+    // Initialize Hammer.js with adjusted thresholds
+    const mc = new Hammer.Manager(gestureArea, {
+        recognizers: [
+            [Hammer.Tap, { event: 'tap', taps: 1, threshold: 9 }],
+            [Hammer.Tap, { event: 'doubletap', taps: 2 }],
+            [Hammer.Press, { time: 500 }],
+            [Hammer.Pan, { direction: Hammer.DIRECTION_ALL, threshold: 5 }],
+            [Hammer.Pinch, { enable: true, threshold: 0.1 }],
+            [Hammer.Rotate, { enable: true, threshold: 5 }]
+        ]
+    });
+
+    // Handle window resize
     window.addEventListener('resize', function() {
         canvas.width = gestureArea.offsetWidth;
         canvas.height = gestureArea.offsetHeight;
         redrawCanvas();
     });
     
-    // Initialize Hammer.js
-    const mc = new Hammer.Manager(gestureArea, {
-        recognizers: [
-            [Hammer.Tap, { event: 'tap', taps: 1 }],
-            [Hammer.Tap, { event: 'doubletap', taps: 2 }],
-            [Hammer.Press, { time: 500 }],
-            [Hammer.Pan, { direction: Hammer.DIRECTION_ALL, threshold: 10 }],
-            [Hammer.Pinch, { enable: true }],
-            [Hammer.Rotate, { enable: true }]
-        ]
-    });
-    
-    // Variables for touch tracking
-    let isDrawing = false;
-    let lastX = 0;
-    let lastY = 0;
-    let touchCount = 0;
-    
-    // Clear canvas
-    clearBtn.addEventListener('click', function() {
-        clearCanvas();
-        gestureOutput.innerHTML = '<p>Perform a gesture to see feedback here</p>';
-    });
-    
-    // Set up gesture list interactions
+    // Clear button
+    clearBtn.addEventListener('click', clearAll);
+
+    // Gesture list instructions
     gestureListItems.forEach(item => {
         item.addEventListener('click', function() {
             const gesture = this.getAttribute('data-gesture');
             showGestureInstruction(gesture);
         });
     });
-    
-    // Show instructions for specific gesture
-    function showGestureInstruction(gesture) {
-        const instructions = {
-            tap: 'Tap once anywhere in the blue area',
-            doubletap: 'Quickly tap twice in the same spot',
-            press: 'Press and hold for about half a second',
-            pan: 'Swipe in any direction (try up, down, left, right)',
-            pinch: 'Place two fingers and pinch in or out',
-            rotate: 'Place two fingers and rotate them'
+
+    // Unified gesture handler
+    mc.on('tap press panstart pinchstart rotatestart', function(e) {
+        if(isDrawing && e.type !== 'panstart') return;
+        
+        const gestureMap = {
+            'tap': ['tap', 'Tap detected'],
+            'press': ['press', 'Press detected'],
+            'panstart': ['pan', 'Swipe detected'],
+            'pinchstart': ['pinch', e.scale > 1 ? 'Pinch out detected' : 'Pinch in detected'],
+            'rotatestart': ['rotate', 'Rotation detected']
         };
         
-        gestureOutput.innerHTML = `<p><strong>${gesture}:</strong> ${instructions[gesture]}</p>`;
-    }
-    
-    // Handle touch start for drawing
+        const [gestureType, message] = gestureMap[e.type];
+        showFeedback(gestureType, message);
+        
+        // Don't trace multi-touch gestures
+        if(['pinchstart', 'rotatestart'].includes(e.type)) {
+            isDrawing = false;
+            return;
+        }
+        
+        // Start tracing for single-touch gestures
+        handleTouchStart(e);
+    });
+
+    // Handle double taps separately
+    mc.on('doubletap', function(e) {
+        showFeedback('doubletap', 'Double tap detected');
+        drawCircle(getCoord(e, 'x'), getCoord(e, 'y'), 40, 'rgba(255, 149, 0, 0.5)');
+    });
+
+    // Touch/mouse handlers
     gestureArea.addEventListener('touchstart', handleTouchStart);
     gestureArea.addEventListener('mousedown', handleMouseDown);
-    
-    // Handle touch move for drawing
     gestureArea.addEventListener('touchmove', handleTouchMove);
     gestureArea.addEventListener('mousemove', handleMouseMove);
-    
-    // Handle touch end
     gestureArea.addEventListener('touchend', handleTouchEnd);
     gestureArea.addEventListener('mouseup', handleTouchEnd);
     gestureArea.addEventListener('mouseleave', handleTouchEnd);
-    
+
     function handleTouchStart(e) {
         isDrawing = true;
-        touchCount = e.touches ? e.touches.length : 1;
-        
-        const x = e.touches ? e.touches[0].clientX - gestureArea.getBoundingClientRect().left : e.clientX - gestureArea.getBoundingClientRect().left;
-        const y = e.touches ? e.touches[0].clientY - gestureArea.getBoundingClientRect().top : e.clientY - gestureArea.getBoundingClientRect().top;
+        const x = getCoord(e, 'x');
+        const y = getCoord(e, 'y');
         
         lastX = x;
         lastY = y;
         
-        // Reset opacity when new touch starts
+        // Reset fading
         traceOpacity = 1;
         clearInterval(fadeInterval);
         ctx.globalAlpha = 1;
         drawingHistory = [];
         
         // Show touch point
-        touchPoint.style.left = `${x}px`;
-        touchPoint.style.top = `${y}px`;
-        touchPoint.style.opacity = '1';
-        touchPoint.style.width = `${touchCount * 20}px`;
-        touchPoint.style.height = `${touchCount * 20}px`;
+        updateTouchPoint(x, y, e.touches ? e.touches.length : 1);
         
         // Record starting point
         drawingHistory.push({
             type: 'begin',
             x: x,
             y: y,
-            width: touchCount * 20,
             time: Date.now()
         });
     }
-    
+
     function handleMouseDown(e) {
-        if (e.button !== 0) return; // Only left mouse button
-        handleTouchStart(e);
+        if (e.button === 0) handleTouchStart(e);
     }
-    
+
     function handleTouchMove(e) {
         if (!isDrawing) return;
         
-        const x = e.touches ? e.touches[0].clientX - gestureArea.getBoundingClientRect().left : e.clientX - gestureArea.getBoundingClientRect().left;
-        const y = e.touches ? e.touches[0].clientY - gestureArea.getBoundingClientRect().top : e.clientY - gestureArea.getBoundingClientRect().top;
+        const x = getCoord(e, 'x');
+        const y = getCoord(e, 'y');
         
-        // Update touch point position
-        touchPoint.style.left = `${x}px`;
-        touchPoint.style.top = `${y}px`;
+        updateTouchPoint(x, y);
         
-        // Draw the line with current opacity
+        // Draw the line
         ctx.globalAlpha = traceOpacity;
         ctx.beginPath();
         ctx.moveTo(lastX, lastY);
@@ -142,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ctx.lineCap = 'round';
         ctx.stroke();
         
-        // Record the drawing action
+        // Record the movement
         drawingHistory.push({
             type: 'move',
             fromX: lastX,
@@ -155,54 +152,56 @@ document.addEventListener('DOMContentLoaded', function() {
         lastX = x;
         lastY = y;
     }
-    
+
     function handleMouseMove(e) {
-        if (!isDrawing) return;
-        handleTouchMove(e);
+        if (isDrawing) handleTouchMove(e);
     }
-    
+
     function handleTouchEnd() {
         isDrawing = false;
-        
-        // Hide touch point with delay
-        setTimeout(() => {
-            touchPoint.style.opacity = '0';
-        }, 200);
-        
-        // Start fading out traces
+        touchPoint.style.opacity = '0';
         startFadingTraces();
     }
-    
-    // Function to fade traces
+
+    function updateTouchPoint(x, y, count = 1) {
+        touchPoint.style.left = `${x}px`;
+        touchPoint.style.top = `${y}px`;
+        touchPoint.style.width = `${count * 20}px`;
+        touchPoint.style.height = `${count * 20}px`;
+        touchPoint.style.opacity = '1';
+    }
+
+    function getCoord(e, axis) {
+        const rect = gestureArea.getBoundingClientRect();
+        if (e.touches) {
+            return axis === 'x' 
+                ? e.touches[0].clientX - rect.left 
+                : e.touches[0].clientY - rect.top;
+        }
+        return axis === 'x' 
+            ? e.clientX - rect.left 
+            : e.clientY - rect.top;
+    }
+
     function startFadingTraces() {
-        // Clear any existing fade interval
         clearInterval(fadeInterval);
-        
-        // Reset opacity
         traceOpacity = 1;
         ctx.globalAlpha = traceOpacity;
         
-        // Start fading
         fadeInterval = setInterval(() => {
             traceOpacity -= 0.05;
             ctx.globalAlpha = traceOpacity;
-            
-            // Redraw canvas with new opacity
             redrawCanvas();
             
             if (traceOpacity <= 0) {
                 clearInterval(fadeInterval);
                 clearCanvas();
             }
-        }, fadeDuration / 20); // Divide by 20 for smooth fading (20 steps)
+        }, fadeDuration / 20);
     }
-    
-    // Function to redraw the entire canvas from history
+
     function redrawCanvas() {
-        clearCanvas(false); // Clear without resetting history
-        
-        // Redraw all paths with current opacity
-        ctx.globalAlpha = traceOpacity;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         for (let i = 0; i < drawingHistory.length; i++) {
             const action = drawingHistory[i];
@@ -218,108 +217,46 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-    
-    // Function to completely clear canvas
-    function clearCanvas(resetHistory = true) {
+
+    function clearCanvas() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.globalAlpha = 1;
         traceOpacity = 1;
-        
-        if (resetHistory) {
-            drawingHistory = [];
-        }
+        drawingHistory = [];
     }
-    
-    // Gesture recognition handlers
-    mc.on('tap', function(e) {
-        showFeedback('tap', 'Tap detected');
-        drawCircle(e.center.x, e.center.y, 30, 'rgba(52, 199, 89, 0.5)');
-    });
-    
-    mc.on('doubletap', function(e) {
-        showFeedback('doubletap', 'Double tap detected');
-        drawCircle(e.center.x, e.center.y, 40, 'rgba(255, 149, 0, 0.5)');
-    });
-    
-    mc.on('press', function(e) {
-        showFeedback('press', 'Press and hold detected');
-        drawCircle(e.center.x, e.center.y, 50, 'rgba(255, 59, 48, 0.5)');
-    });
-    
-    mc.on('panstart panmove panend', function(e) {
-        if (e.type === 'panstart') {
-            showFeedback('pan', 'Swiping detected');
-        }
-        
-        // Draw swipe path
-        if (e.type !== 'panend') {
-            drawCircle(e.center.x, e.center.y, 10, 'rgba(88, 86, 214, 0.5)');
-        }
-    });
-    
-    mc.on('pinchstart pinchmove pinchend', function(e) {
-        if (e.type === 'pinchstart') {
-            showFeedback('pinch', e.scale > 1 ? 'Pinch out (zoom in) detected' : 'Pinch in (zoom out) detected');
-        }
-        
-        // Draw pinch points
-        if (e.type !== 'pinchend') {
-            drawCircle(e.pointers[0].clientX - gestureArea.getBoundingClientRect().left, 
-                       e.pointers[0].clientY - gestureArea.getBoundingClientRect().top, 
-                       15, 'rgba(175, 82, 222, 0.5)');
-            drawCircle(e.pointers[1].clientX - gestureArea.getBoundingClientRect().left, 
-                       e.pointers[1].clientY - gestureArea.getBoundingClientRect().top, 
-                       15, 'rgba(175, 82, 222, 0.5)');
-        }
-    });
-    
-    mc.on('rotatestart rotatemove rotateend', function(e) {
-        if (e.type === 'rotatestart') {
-            showFeedback('rotate', 'Rotation detected');
-        }
-        
-        // Draw rotation points
-        if (e.type !== 'rotateend') {
-            drawCircle(e.pointers[0].clientX - gestureArea.getBoundingClientRect().left, 
-                       e.pointers[0].clientY - gestureArea.getBoundingClientRect().top, 
-                       15, 'rgba(255, 45, 85, 0.5)');
-            drawCircle(e.pointers[1].clientX - gestureArea.getBoundingClientRect().left, 
-                       e.pointers[1].clientY - gestureArea.getBoundingClientRect().top, 
-                       15, 'rgba(255, 45, 85, 0.5)');
-            
-            // Draw line between points
-            ctx.beginPath();
-            ctx.moveTo(e.pointers[0].clientX - gestureArea.getBoundingClientRect().left, 
-                      e.pointers[0].clientY - gestureArea.getBoundingClientRect().top);
-            ctx.lineTo(e.pointers[1].clientX - gestureArea.getBoundingClientRect().left, 
-                      e.pointers[1].clientY - gestureArea.getBoundingClientRect().top);
-            ctx.lineWidth = 3;
-            ctx.strokeStyle = 'rgba(255, 45, 85, 0.5)';
-            ctx.stroke();
-        }
-    });
-    
-    // Show visual feedback for gestures
-    function showFeedback(gestureType, message) {
-        // Reset and apply new feedback
-        gestureFeedback.className = 'gesture-feedback feedback-active';
-        gestureFeedback.classList.add(`${gestureType}-feedback`);
-        
-        // Update output
-        gestureOutput.innerHTML = `<p><strong>${gestureType}:</strong> ${message}</p>`;
-        
-        // Hide feedback after delay
-        setTimeout(() => {
-            gestureFeedback.classList.remove('feedback-active');
-        }, 1000);
+
+    function clearAll() {
+        clearCanvas();
+        gestureOutput.innerHTML = '<p>Perform a gesture to see feedback here</p>';
     }
-    
-    // Helper function to draw circles
+
     function drawCircle(x, y, radius, color) {
         ctx.globalAlpha = traceOpacity;
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, Math.PI * 2);
         ctx.fillStyle = color;
         ctx.fill();
+    }
+
+    function showFeedback(gestureType, message) {
+        gestureFeedback.className = 'gesture-feedback feedback-active';
+        gestureFeedback.classList.add(`${gestureType}-feedback`);
+        gestureOutput.innerHTML = `<p><strong>${gestureType}:</strong> ${message}</p>`;
+        
+        setTimeout(() => {
+            gestureFeedback.classList.remove('feedback-active');
+        }, 1000);
+    }
+
+    function showGestureInstruction(gesture) {
+        const instructions = {
+            tap: 'Tap once anywhere in the blue area',
+            doubletap: 'Quickly tap twice in the same spot',
+            press: 'Press and hold for about half a second',
+            pan: 'Swipe in any direction (try up, down, left, right)',
+            pinch: 'Place two fingers and pinch in or out',
+            rotate: 'Place two fingers and rotate them'
+        };
+        gestureOutput.innerHTML = `<p><strong>${gesture}:</strong> ${instructions[gesture]}</p>`;
     }
 });
