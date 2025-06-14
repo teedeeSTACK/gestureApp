@@ -2,40 +2,54 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
     <title>iPad Gestures Tutorial</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="app-container">
         <header>
-            <h1>iPad Gestures Tutorial</h1>
+            <h1><i class="fas fa-hand-pointer"></i> iPad Gestures Tutorial</h1>
             <p>Practice basic touch gestures on this interactive demo</p>
         </header>
         
-        <div class="gesture-area" id="gestureArea">
-            <div class="gesture-feedback"></div>
-            <div class="touch-point" id="touchPoint"></div>
-            <canvas id="touchCanvas"></canvas>
-        </div>
-        
-        <div class="instructions">
-            <h2>Try these gestures:</h2>
-            <ul class="gesture-list">
-                <li data-gesture="tap">Tap</li>
-                <li data-gesture="doubletap">Double Tap</li>
-                <li data-gesture="press">Press and Hold</li>
-                <li data-gesture="pan">Swipe (any direction)</li>
-                <li data-gesture="pinch">Pinch (zoom in/out)</li>
-                <li data-gesture="rotate">Rotate (two fingers)</li>
-            </ul>
+        <div class="content-container">
+            <div class="gesture-section">
+                <div class="gesture-area-container">
+                    <div class="gesture-area" id="gestureArea">
+                        <div class="gesture-feedback"></div>
+                        <div class="touch-point" id="touchPoint"></div>
+                        <canvas id="touchCanvas"></canvas>
+                    </div>
+                    <div class="gesture-controls">
+                        <button id="clearBtn">Clear Tracing</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="instructions-section instructions-right" id="instructionsSection">
+                <div class="instructions-header">
+                    <h2>Try these gestures:</h2>
+                    <button id="handToggle" class="hand-toggle">
+                        <i class="fas fa-hand-point-right"></i> Right Hand
+                    </button>
+                </div>
+                <ul class="gesture-list">
+                    <li data-gesture="free"><i class="fas fa-pencil-alt"></i> Free Drawing</li>
+                    <li data-gesture="tap"><i class="fas fa-hand-pointer"></i> Tap</li>
+                    <li data-gesture="doubletap"><i class="fas fa-hand-point-up"></i> Double Tap</li>
+                    <li data-gesture="press"><i class="fas fa-hand-holding"></i> Press and Hold</li>
+                    <li data-gesture="pan"><i class="fas fa-hand-paper"></i> Swipe (any direction)</li>
+                    <li data-gesture="pinch"><i class="fas fa-compress-alt"></i> Pinch (zoom in/out)</li>
+                    <li data-gesture="rotate"><i class="fas fa-sync-alt"></i> Rotate (two fingers)</li>
+                </ul>
+            </div>
         </div>
         
         <div class="gesture-output" id="gestureOutput">
             <p>Perform a gesture to see feedback here</p>
         </div>
-        
-        <button id="clearBtn">Clear Tracing</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
