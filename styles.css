@@ -6,41 +6,87 @@
 }
 
 body {
-    background-color: #f5f5f7;
+    background: linear-gradient(135deg, #6e8efb, #a777e3);
     color: #1d1d1f;
     padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .app-container {
-    max-width: 800px;
+    width: 100%;
+    max-width: 1200px;
     margin: 0 auto;
-    background-color: white;
-    border-radius: 18px;
-    padding: 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 24px;
+    padding: 25px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 header {
     text-align: center;
     margin-bottom: 30px;
+    position: relative;
 }
 
 header h1 {
-    font-size: 28px;
+    font-size: 32px;
     margin-bottom: 8px;
     color: #1d1d1f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+header h1 i {
+    color: #007aff;
+}
+
+header p {
+    color: #666;
+    font-size: 18px;
+}
+
+.content-container {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.gesture-section {
+    flex: 1;
+    min-width: 600px;
+    display: flex;
+    flex-direction: column;
+}
+
+.gesture-area-container {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .gesture-area {
     width: 100%;
-    height: 300px;
+    height: 500px;
     background-color: #fbfbfd;
-    border-radius: 12px;
+    border-radius: 18px;
     position: relative;
     overflow: hidden;
-    border: 2px dashed #d2d2d7;
+    border: 2px solid #e0e0e8;
     margin-bottom: 20px;
     touch-action: none;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.05);
 }
 
 .gesture-feedback {
@@ -77,59 +123,118 @@ header h1 {
     pointer-events: none;
 }
 
-.instructions {
-    margin-bottom: 20px;
+.instructions-section {
+    width: 300px;
+    display: flex;
+    flex-direction: column;
 }
 
-.instructions h2 {
-    font-size: 20px;
-    margin-bottom: 10px;
+.instructions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.instructions-header h2 {
+    font-size: 22px;
+}
+
+.hand-toggle {
+    background: #007aff;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 8px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s;
+}
+
+.hand-toggle:hover {
+    background: #0062cc;
 }
 
 .gesture-list {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
     list-style: none;
+    background: #f5f5f7;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .gesture-list li {
-    padding: 12px;
-    background-color: #f5f5f7;
-    border-radius: 8px;
-    text-align: center;
+    padding: 15px;
+    background-color: white;
+    border-radius: 12px;
     font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 .gesture-list li:hover {
-    background-color: #e5e5ea;
+    background-color: #f0f0f5;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.gesture-output {
-    padding: 15px;
-    background-color: #f5f5f7;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    min-height: 60px;
+.gesture-list li i {
+    width: 20px;
+    text-align: center;
+    color: #007aff;
 }
 
-#clearBtn {
-    width: 100%;
+.gesture-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+#clearBtn, #reloadBtn {
+    flex: 1;
     padding: 12px;
-    background-color: #007aff;
-    color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
     font-size: 16px;
     font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
+}
+
+#clearBtn {
+    background-color: #007aff;
+    color: white;
 }
 
 #clearBtn:hover {
     background-color: #0062cc;
+}
+
+#reloadBtn {
+    background-color: #34c759;
+    color: white;
+}
+
+#reloadBtn:hover {
+    background-color: #2daa4d;
+}
+
+.gesture-output {
+    padding: 20px;
+    background-color: #f5f5f7;
+    border-radius: 16px;
+    min-height: 80px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 /* Feedback classes */
@@ -160,3 +265,67 @@ header h1 {
 .rotate-feedback {
     background-color: rgba(255, 45, 85, 0.2);
 }
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.game-header h3 {
+    color: #007aff;
+    font-size: 18px;
+}
+
+.score {
+    font-weight: bold;
+    color: #34c759;
+}
+
+.success-feedback {
+    position: absolute;
+    background-color: rgba(52, 199, 89, 0.9);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    animation: floatUp 1s ease-out forwards;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes floatUp {
+    0% { opacity: 1; transform: translate(-50%, -50%); }
+    100% { opacity: 0; transform: translate(-50%, -100px); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 1000px) {
+    .content-container {
+        flex-direction: column;
+    }
+    
+    .gesture-section {
+        min-width: 100%;
+    }
+    
+    .instructions-section {
+        width: 100%;
+    }
+    
+    .gesture-area {
+        height: 400px;
+    }
+}
+
+/* Right-to-left layout */
+.instructions-right {
+    order: 1;
+}
+
+.instructions-left {
+    order: -1;
+}
+
